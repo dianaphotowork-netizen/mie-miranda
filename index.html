@@ -162,7 +162,7 @@
       <span class="nome">Janelas de Miranda</span
       ><span class="subtitulo">Tradição Artesanal Viva</span>
     </div>
-    <div id="overlay">Aponte a câmara para o íman</div>
+    <div id="overlay">Aponte o íman para a câmara</div>
 
     <button id="btn-audio">
       <svg
@@ -224,11 +224,12 @@
 
       <a-entity mindar-image-target="targetIndex: 0">
         <a-plane
-          material="shader: standard; color: #ffffff; transparent: true; opacity: 0.2; roughness: 0; metalness: 0.5;"
-          position="0 0 -0.01"
+          material="shader: standard; color: #ffffff; transparent: true; opacity: 0.15; roughness: 0.1; metalness: 0.5;"
+          position="0 0.15 -0.01"
           width="1.1"
-          height="1.5"
-        ></a-plane>
+          height="0.9"
+        >
+        </a-plane>
 
         <a-video
           src="#vid"
@@ -237,29 +238,42 @@
           height="0.75"
         ></a-video>
 
+        <a-text
+          value="LHACCO L' CASTILHO"
+          position="0 -0.32 0.02"
+          align="center"
+          color="#e8dcc8"
+          width="1.2"
+          font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"
+        >
+        </a-text>
+
+        <a-entity position="0.95 0.15 0.05" rotation="0 -10 0">
+          <a-plane
+            width="0.85"
+            height="0.65"
+            material="shader: standard; color: #1a1410; transparent: true; opacity: 0.85;"
+            border="width: 0.01; color: #c4622d"
+          >
+          </a-plane>
+          <a-text
+            value="Os Pauliteiros dancam ao som da gaita-de-fole. Este lhaco simboliza a forca e a uniao da terra mirandesa."
+            position="0 0 0.01"
+            align="center"
+            color="#c9bba8"
+            width="0.75"
+            wrap-count="18"
+            line-height="50"
+          >
+          </a-text>
+        </a-entity>
+
         <a-plane
           position="0 -0.25 0.02"
-          width="0.7"
+          width="0.6"
           height="0.005"
           color="#c4622d"
         ></a-plane>
-
-        <a-text
-          value="LHACCO: O CASTELO"
-          position="0 -0.35 0.02"
-          align="center"
-          color="#e8dcc8"
-          width="0.9"
-          wrap-count="20"
-        ></a-text>
-        <a-text
-          value="Os Pauliteiros dancam ao som da gaita-de-fole. O 'Castelo' e um lhaco acrobatico."
-          position="0 -0.5 0.02"
-          align="center"
-          color="#c9bba8"
-          width="0.8"
-          wrap-count="30"
-        ></a-text>
       </a-entity>
     </a-scene>
 
@@ -283,6 +297,14 @@
 
       document
         .querySelector("[mindar-image-target]")
+        .addEventListener("targetFound", () => {
+          // Garantia de Play se o utilizador já tiver interagido com o som
+          if (!audioAtivo) video.muted = true;
+          video.play();
+        });
+
+      document
+        .querySelector("[mindar-image-target]")
         .addEventListener("targetLost", () => {
           overlay.textContent = "Aponte o íman para a câmara";
           overlay.classList.remove("ativo");
@@ -295,6 +317,11 @@
         video.muted = !audioAtivo;
         iconeSemSom.style.display = audioAtivo ? "none" : "block";
         iconeComSom.style.display = audioAtivo ? "block" : "none";
+
+        // Se o vídeo já estiver a correr, o unmute aplica-se na hora
+        if (audioAtivo) {
+          video.play();
+        }
       });
     </script>
   </body>
