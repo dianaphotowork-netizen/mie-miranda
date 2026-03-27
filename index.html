@@ -1,0 +1,628 @@
+<!doctype html>
+<!-- Projeto: Janelas de Miranda — WebAR para Artesanato Transmontano -->
+<!-- Versão: 3.0 — Identidade Visual "Burel & MDF" com Infografias Orgânicas -->
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Janelas de Miranda — Tradição Artesanal Viva</title>
+
+    <!--
+      Tipografia escolhida com intenção:
+      · Cormorant Garamond: elegância editorial clássica, evoca tradição ibérica
+      · Jost: sans-serif geométrico limpo, leiturabilidade em ecrã pequeno
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- A-Frame: motor 3D/WebXR declarativo -->
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <!-- MindAR: extensão A-Frame para rastreamento de imagem (Image Tracking) -->
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+    <style>
+      /* ============================================================
+         VARIÁVEIS DE DESIGN — PALETA "BUREL & MDF"
+         Inspirada nos materiais reais do artesanato de Miranda:
+         · Castanho profundo do Burel (lã prensada)
+         · Beige quente do MDF natural e da lã crua
+         · Terracota como tom de destaque (terra transmontana)
+         · Off-white amanteigado para texto sobre fundos escuros
+         ============================================================ */
+      :root {
+        /* Fundos (do mais escuro ao mais claro) */
+        --burel-fundo: #1a1410;
+        --burel-medio: #2c2218;
+        --burel-claro: #3d3026;
+
+        /* Destaque terra */
+        --terracota: #c4622d;
+        --terracota-claro: #d97c4a;
+        --ocre: #b8912a;
+
+        /* Neutros beige/lã/MDF */
+        --la-crua: #e8dcc8;
+        --la-suave: #c9bba8;
+        --mdf-natural: #d4c4a8;
+        --mdf-claro: #f2ebe0;
+
+        /* Sobreposições semi-transparentes */
+        --overlay-fundo: rgba(26, 20, 16, 0.9);
+
+        /* Tipografia */
+        --fonte-display: "Cormorant Garamond", Georgia, serif;
+        --fonte-corpo: "Jost", Helvetica, sans-serif;
+      }
+
+      /* Reset base */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: var(--burel-fundo);
+        font-family: var(--fonte-corpo);
+      }
+
+      /* ============================================================
+         MARCA — "Janelas de Miranda"
+         Canto superior esquerdo, por cima da câmara AR
+         ============================================================ */
+      #marca {
+        position: fixed;
+        top: 22px;
+        left: 20px;
+        z-index: 999;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.7));
+      }
+
+      #marca .nome {
+        font-family: var(--fonte-display);
+        font-size: 22px;
+        font-weight: 700;
+        font-style: italic;
+        color: var(--mdf-claro);
+        line-height: 1;
+        letter-spacing: -0.01em;
+      }
+
+      #marca .subtitulo {
+        font-family: var(--fonte-corpo);
+        font-size: 9px;
+        font-weight: 300;
+        color: var(--terracota-claro);
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+      }
+
+      /* Traço decorativo abaixo do subtítulo, evocativo do Burel */
+      #marca::after {
+        content: "";
+        display: block;
+        width: 28px;
+        height: 1px;
+        background: var(--terracota);
+        opacity: 0.7;
+        margin-top: 5px;
+      }
+
+      /* ============================================================
+         OVERLAY DE ESTADO — centro superior
+         ============================================================ */
+      #overlay {
+        position: fixed;
+        top: 22px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 999;
+        background: var(--overlay-fundo);
+        color: var(--la-suave);
+        padding: 10px 22px;
+        border-radius: 40px;
+        font-family: var(--fonte-corpo);
+        font-size: 12px;
+        font-weight: 400;
+        letter-spacing: 0.06em;
+        text-align: center;
+        white-space: nowrap;
+        border: 1px solid rgba(196, 98, 45, 0.35);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        transition:
+          background 0.5s ease,
+          color 0.4s ease,
+          border-color 0.4s ease;
+        filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.5));
+      }
+
+      /* Estado ativo — target detetado */
+      #overlay.ativo {
+        background: rgba(196, 98, 45, 0.88);
+        color: var(--mdf-claro);
+        border-color: rgba(242, 235, 224, 0.3);
+      }
+
+      /* ============================================================
+         BOTÃO DE ÁUDIO — ícone SVG de linhas simples
+         Estética artesanal: sem emoji, sem cores brilhantes
+         ============================================================ */
+      #btn-audio {
+        position: fixed;
+        bottom: 32px;
+        right: 22px;
+        z-index: 999;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: var(--overlay-fundo);
+        border: 1px solid rgba(196, 98, 45, 0.4);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          background 0.3s ease,
+          border-color 0.3s ease,
+          transform 0.2s ease;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.5));
+        outline: none;
+        /* Remove estilo padrão de botão */
+        -webkit-appearance: none;
+        appearance: none;
+      }
+
+      #btn-audio svg {
+        width: 20px;
+        height: 20px;
+        overflow: visible;
+        /* Transição suave na troca de ícones */
+        transition: opacity 0.25s ease;
+      }
+
+      #btn-audio:hover {
+        background: rgba(196, 98, 45, 0.18);
+        border-color: var(--terracota);
+        transform: scale(1.06);
+      }
+
+      /* Estado COM som: borda e anel em terracota */
+      #btn-audio.som-ativo {
+        border-color: var(--terracota);
+        box-shadow: 0 0 0 3px rgba(196, 98, 45, 0.15);
+      }
+
+      /* Etiqueta de ajuda abaixo do botão */
+      #etiqueta-audio {
+        position: fixed;
+        bottom: 14px;
+        right: 0;
+        width: 96px;
+        text-align: center;
+        z-index: 999;
+        font-family: var(--fonte-corpo);
+        font-size: 9px;
+        font-weight: 300;
+        color: rgba(232, 220, 200, 0.38);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        pointer-events: none;
+      }
+
+      /* ============================================================
+         DICA DE SCANNING — centro inferior
+         ============================================================ */
+      #dica-scan {
+        position: fixed;
+        bottom: 32px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 999;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--overlay-fundo);
+        border: 1px solid rgba(196, 98, 45, 0.25);
+        border-radius: 40px;
+        padding: 10px 20px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        transition:
+          opacity 0.5s ease,
+          transform 0.5s ease;
+        filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.5));
+      }
+
+      #dica-scan .pulso {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--terracota);
+        animation: pulsar 1.8s ease-in-out infinite;
+        flex-shrink: 0;
+      }
+
+      #dica-scan .texto-dica {
+        font-family: var(--fonte-corpo);
+        font-size: 11px;
+        font-weight: 300;
+        color: var(--la-suave);
+        letter-spacing: 0.06em;
+      }
+
+      #dica-scan.oculto {
+        opacity: 0;
+        transform: translateX(-50%) translateY(14px);
+        pointer-events: none;
+      }
+
+      /* ============================================================
+         ANIMAÇÕES
+         ============================================================ */
+      @keyframes pulsar {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.7);
+          opacity: 0.35;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ============================================================
+         INTERFACE 2D (HTML — sobre a câmara AR)
+         ============================================================ -->
+
+    <!-- Marca — canto superior esquerdo -->
+    <div id="marca" role="banner">
+      <span class="nome">Janelas de Miranda</span>
+      <span class="subtitulo">Tradição Artesanal Viva</span>
+    </div>
+
+    <!-- Estado da câmara — centro superior -->
+    <div id="overlay" role="status" aria-live="polite">
+      Aponte o íman para a câmara
+    </div>
+
+    <!--
+      BOTÃO DE ÁUDIO com ícones SVG de linhas simples.
+      Dois ícones sobrepostos: um visível de cada vez.
+      Nenhum emoji — apenas linhas finas em beige e terracota.
+    -->
+    <button
+      id="btn-audio"
+      aria-label="Ativar áudio"
+      title="Ativar ou desativar áudio"
+    >
+      <!-- ÍCONE: SEM SOM (muted) — altifalante + X -->
+      <svg
+        id="icone-sem-som"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="var(--la-suave)"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M11 5L6 9H3v6h3l5 4V5z" />
+        <line x1="23" y1="9" x2="17" y2="15" />
+        <line x1="17" y1="9" x2="23" y2="15" />
+      </svg>
+
+      <!-- ÍCONE: COM SOM (unmuted) — altifalante + ondas (oculto por defeito) -->
+      <svg
+        id="icone-com-som"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="var(--terracota-claro)"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+        style="display: none"
+      >
+        <path d="M11 5L6 9H3v6h3l5 4V5z" />
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+      </svg>
+    </button>
+    <div id="etiqueta-audio" aria-hidden="true">Som</div>
+
+    <!-- Dica de scanning -->
+    <div id="dica-scan" role="status">
+      <div class="pulso" aria-hidden="true"></div>
+      <span class="texto-dica">A detetar íman…</span>
+    </div>
+
+    <!-- ============================================================
+         CENA A-FRAME / MINDAR
+         ============================================================ -->
+    <a-scene
+      mindar-image="imageTargetSrc: ./pauliteiros.mind; autoStart: true; uiScanning: no;"
+      color-space="sRGB"
+      renderer="colorManagement: true, physicallyCorrectLights"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+    >
+      <!-- Pré-carregamento de recursos -->
+      <a-assets>
+        <!--
+          Vídeo com atributos obrigatórios para funcionar em todos os browsers:
+          · playsinline: reproduz em linha no iOS (sem forçar fullscreen)
+          · muted: necessário para autoplay funcionar
+          · crossorigin: permite carregar de outro domínio (CORS)
+          · loop: volta ao início automaticamente
+          · preload="auto": descarrega ao carregar a página
+        -->
+        <video
+          id="vid"
+          src="./Pauliteirosclip.mp4"
+          playsinline
+          webkit-playsinline
+          muted
+          crossorigin="anonymous"
+          loop
+          preload="auto"
+        ></video>
+      </a-assets>
+
+      <!-- Câmara virtual (posicionada automaticamente pelo MindAR) -->
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+      <!-- ============================================================
+           ENTITY DO TARGET — conteúdo AR que aparece sobre o íman
+
+           Tudo dentro desta entity é mostrado/ocultado automaticamente
+           pelo MindAR conforme o target entra/sai da câmara.
+
+           SISTEMA DE COORDENADAS A-FRAME:
+           · X: esquerda(−) / direita(+)
+           · Y: baixo(−) / cima(+)
+           · Z: fundo(−) / frente(+)
+           ============================================================ -->
+      <a-entity mindar-image-target="targetIndex: 0">
+        <!-- ===========================================================
+             CAMADA 1: BORDA DECORATIVA EXTERIOR (terracota)
+             Cria uma moldura orgânica que envolve todo o conteúdo AR.
+             Ligeiramente maior que o fundo para criar o efeito de borda.
+             =========================================================== -->
+        <a-plane
+          position="0 0 -0.004"
+          width="1.01"
+          height="1.14"
+          color="#c4622d"
+          opacity="0.55"
+        ></a-plane>
+
+        <!-- ===========================================================
+             CAMADA 2: FUNDO GERAL "BUREL"
+             Castanho escuro, simula a superfície do Burel negro.
+             Formato vertical para encaixar no íman físico MDF.
+             =========================================================== -->
+        <a-plane
+          position="0 0 -0.003"
+          width="0.97"
+          height="1.10"
+          color="#1a1410"
+          opacity="0.97"
+        ></a-plane>
+
+        <!-- ===========================================================
+             VÍDEO PRINCIPAL
+             Formato vertical/quadrado para o íman.
+             Posicionado acima do centro para dar espaço à infografia.
+             =========================================================== -->
+        <a-video
+          src="#vid"
+          position="0 0.13 0.005"
+          width="0.85"
+          height="0.60"
+        ></a-video>
+
+        <!-- ===========================================================
+             SEPARADOR DECORATIVO — entre o vídeo e a infografia
+             Linha fina terracota com dois pontos nas extremidades,
+             imitando o acabamento artesanal de uma etiqueta de tecido.
+             =========================================================== -->
+        <a-plane
+          position="0 -0.20 0.005"
+          width="0.70"
+          height="0.003"
+          color="#c4622d"
+          opacity="0.60"
+        ></a-plane>
+
+        <a-circle
+          position="-0.35 -0.20 0.005"
+          radius="0.011"
+          color="#c4622d"
+          opacity="0.75"
+        ></a-circle>
+
+        <a-circle
+          position="0.35 -0.20 0.005"
+          radius="0.011"
+          color="#c4622d"
+          opacity="0.75"
+        ></a-circle>
+
+        <!-- ===========================================================
+             INFOGRAFIA — TÍTULO
+             "LHAÇO: O CASTELO" em maiúsculas, beige claro.
+             Estilo evocativo de etiqueta gravada em madeira ou tecido.
+             =========================================================== -->
+        <a-text
+          value="LHAÇO: O CASTELO"
+          position="0 -0.275 0.005"
+          align="center"
+          color="#e8dcc8"
+          width="0.92"
+          font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"
+          wrap-count="22"
+          letter-spacing="2"
+        ></a-text>
+
+        <!-- ===========================================================
+             INFOGRAFIA — TEXTO CULTURAL (corpo)
+             Novo texto fornecido. Cor bege suave (lã crua),
+             fonte mais fina para criar hierarquia com o título.
+             =========================================================== -->
+        <a-text
+          value="Os Pauliteiros de Miranda dançam ao som da gaita-de-fole, bombo e caixa. O 'Castelo' é um lhaço acrobático que simboliza força e união."
+          position="0 -0.365 0.005"
+          align="center"
+          color="#c9bba8"
+          width="0.80"
+          wrap-count="36"
+          font="https://cdn.aframe.io/fonts/Exo2Light.fnt"
+          line-height="46"
+        ></a-text>
+
+        <!-- ===========================================================
+             INDICADOR DE ATIVIDADE — anel pulsante (canto sup. direito)
+             Terracota discreto, sinaliza que o conteúdo AR está ativo.
+             =========================================================== -->
+        <a-ring
+          position="0.42 0.52 0.006"
+          radius-inner="0.014"
+          radius-outer="0.023"
+          color="#c4622d"
+          animation="property: scale; from: 0.65 0.65 0.65; to: 1.45 1.45 1.45; dur: 1100; dir: alternate; loop: true; easing: easeInOutSine"
+        ></a-ring>
+
+        <!-- ===========================================================
+             RODAPÉ GEOGRÁFICO
+             Localização em terracota muito suave, quase invisível.
+             Marca de origem discreta, como um carimbo de autor.
+             =========================================================== -->
+        <a-text
+          value="Miranda do Douro  ·  Trás-os-Montes"
+          position="0 -0.51 0.005"
+          align="center"
+          color="#6b4f35"
+          width="0.68"
+          wrap-count="40"
+          font="https://cdn.aframe.io/fonts/Exo2Light.fnt"
+        ></a-text>
+      </a-entity>
+    </a-scene>
+
+    <!-- ============================================================
+         JAVASCRIPT — Eventos AR e controlo de áudio
+         ============================================================ -->
+    <script>
+      // ─── Referências à interface 2D ──────────────────────────────
+      const overlay = document.getElementById("overlay");
+      const dicaScan = document.getElementById("dica-scan");
+      const btnAudio = document.getElementById("btn-audio");
+      const etiquetaAudio = document.getElementById("etiqueta-audio");
+      const iconeSemSom = document.getElementById("icone-sem-som");
+      const iconeComSom = document.getElementById("icone-com-som");
+
+      // ─── Referências AR ──────────────────────────────────────────
+      const targetEntity = document.querySelector("[mindar-image-target]");
+      const video = document.getElementById("vid");
+
+      // ─── Estado de áudio ─────────────────────────────────────────
+      // Começa sempre em mudo — obrigatório para autoplay nos browsers modernos
+      let audioAtivo = false;
+
+      // ─── EVENTO: TARGET DETETADO ─────────────────────────────────
+      // Disparado pelo MindAR quando o íman entra no campo de visão da câmara.
+      targetEntity.addEventListener("targetFound", () => {
+        // Atualiza o overlay para o estado ativo (terracota)
+        overlay.textContent = "▶ A reproduzir — afaste para pausar";
+        overlay.classList.add("ativo");
+
+        // Oculta a dica de scanning com transição suave
+        dicaScan.classList.add("oculto");
+
+        // Inicia o vídeo.
+        // .catch() captura o erro se o browser bloquear o autoplay
+        // (acontece quando não houve ainda interação do utilizador).
+        video.play().catch((erro) => {
+          console.log(
+            "Janelas de Miranda: autoplay bloqueado pelo browser.",
+            erro,
+          );
+        });
+      });
+
+      // ─── EVENTO: TARGET PERDIDO ───────────────────────────────────
+      // Disparado quando o íman sai do campo de visão da câmara.
+      targetEntity.addEventListener("targetLost", () => {
+        // Repõe o overlay para o estado de espera
+        overlay.textContent = "Aponte o íman para a câmara";
+        overlay.classList.remove("ativo");
+
+        // Mostra novamente a dica de scanning
+        dicaScan.classList.remove("oculto");
+
+        // Pausa o vídeo para poupar bateria e recursos de rede
+        video.pause();
+      });
+
+      // ─── CONTROLO DE ÁUDIO ───────────────────────────────────────
+      // Os browsers modernos bloqueiam autoplay com som por defeito.
+      // O utilizador tem de interagir primeiro (política de autoplay).
+      // Este botão permite ativar o áudio após essa interação inicial.
+      // A troca de ícone SVG dá feedback visual claro sem depender de texto.
+
+      btnAudio.addEventListener("click", () => {
+        audioAtivo = !audioAtivo; // Inverte o estado
+
+        if (audioAtivo) {
+          // ── Ativar som ──────────────────────────────────────────
+          video.muted = false;
+
+          // Troca o ícone SVG: esconde "mudo", mostra "com som"
+          iconeSemSom.style.display = "none";
+          iconeComSom.style.display = "block";
+
+          btnAudio.classList.add("som-ativo");
+          btnAudio.setAttribute("aria-label", "Desativar áudio");
+          etiquetaAudio.textContent = "Som ativo";
+
+          // Se o vídeo estiver a correr (target visível), garante play com som.
+          // Se estiver pausado, o mudo já foi removido — ativa-se no próximo targetFound.
+          if (!video.paused) {
+            video.play().catch((e) => console.log("Janelas de Miranda:", e));
+          }
+        } else {
+          // ── Desativar som ───────────────────────────────────────
+          video.muted = true;
+
+          // Troca o ícone SVG: mostra "mudo", esconde "com som"
+          iconeSemSom.style.display = "block";
+          iconeComSom.style.display = "none";
+
+          btnAudio.classList.remove("som-ativo");
+          btnAudio.setAttribute("aria-label", "Ativar áudio");
+          etiquetaAudio.textContent = "Som";
+        }
+      });
+
+      // ─── LOG ─────────────────────────────────────────────────────
+      console.log("Janelas de Miranda WebAR v3.0 — Tradição Artesanal Viva 🎶");
+    </script>
+  </body>
+</html>
