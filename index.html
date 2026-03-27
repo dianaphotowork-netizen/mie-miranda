@@ -1,10 +1,4 @@
 <!doctype html>
-<!-- ================================================================
-     Janelas de Miranda — WebAR
-     Base: código original da Diana (que funcionava)
-     Alterações: apenas visuais — paleta, balão, título, botões 2D
-     Estrutura JS e A-Frame: 100% idêntica ao original
-     ================================================================ -->
 <html lang="pt">
   <head>
     <meta charset="UTF-8" />
@@ -15,23 +9,19 @@
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
     <style>
-      :root {
-        --espresso: #542916;
-        --eau-trouble: #b79858;
-        --terre-cuite: #a13a1e;
-        --nuage: #fefaf0;
-        --miel: #f1c166;
-        --burel: #0a0806;
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
 
       body {
-        margin: 0;
+        background: #000;
         overflow: hidden;
-        background: var(--burel);
         font-family: sans-serif;
       }
 
-      /* ── Overlay de instrução ───────────────────────────────── */
+      /* ── Overlay instrução ──────────────────────────────────── */
       #overlay-instrucao {
         position: fixed;
         top: 20px;
@@ -39,64 +29,166 @@
         transform: translateX(-50%);
         z-index: 999;
         background: rgba(10, 8, 6, 0.9);
-        color: var(--nuage);
+        color: #fefaf0;
         padding: 8px 20px;
         border-radius: 20px;
         font-size: 11px;
-        letter-spacing: 0.06em;
-        border: 1px solid var(--terre-cuite);
+        border: 1px solid #a13a1e;
         white-space: nowrap;
+        transition: opacity 0.4s;
       }
 
-      /* ── Botões 2D — base do ecrã ───────────────────────────── */
-      /* Estilo do mockup: grandes, arredondados, fundo cinzento/bege */
-      .interface-botoes {
+      /* ── Painel UI — aparece sobre a câmara quando target detetado ── */
+      /* Escondido por defeito, JS faz display:flex no targetFound      */
+      #painel-ui {
         position: fixed;
-        bottom: 28px;
-        left: 50%;
-        transform: translateX(-50%);
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
         display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        padding-bottom: 32px;
+        z-index: 998;
+        pointer-events: none; /* deixa a câmara AR receber toque */
+      }
+
+      /* ── Balão de texto ─────────────────────────────────────── */
+      #balao {
+        pointer-events: all;
+        width: 82%;
+        max-width: 380px;
+        background: rgba(148, 138, 122, 0.82);
+        border-radius: 28px;
+        padding: 28px 26px 20px 26px;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 24px;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+      }
+
+      /* Ilustração 3-1.jpg como fundo subtil do balão */
+      #balao::before {
+        content: "";
+        position: absolute;
+        right: -10px;
+        bottom: -10px;
+        width: 65%;
+        height: 90%;
+        background: url("./3-1.jpg") no-repeat center/contain;
+        opacity: 0.18;
+        pointer-events: none;
+      }
+
+      /* Texto do slide */
+      #texto-slide {
+        font-size: 15px;
+        line-height: 1.55;
+        color: #ffffff;
+        position: relative;
+        z-index: 1;
+        margin-bottom: 18px;
+      }
+
+      /* Negrito no primeiro fragmento (como no mockup "Os Pauliteiros de Miranda") */
+      #texto-slide strong {
+        font-weight: 700;
+      }
+
+      /* Rodapé do balão: contador + botão Seguinte */
+      #balao-rodape {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+      }
+
+      #contador {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.55);
+        letter-spacing: 0.06em;
+      }
+
+      #btn-seguinte {
+        font-size: 12px;
+        font-weight: 600;
+        color: #e8dcc8;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 4px 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      /* ── Botões URL na base ─────────────────────────────────── */
+      #botoes-url {
+        pointer-events: all;
+        display: flex;
         flex-direction: row;
-        gap: 16px;
-        z-index: 1000;
+        gap: 14px;
+        width: 82%;
+        max-width: 380px;
       }
 
       .btn-link {
-        padding: 14px 28px;
+        flex: 1;
+        padding: 14px 10px;
         border-radius: 40px;
-        /* Fundo cinzento acastanhado como no mockup */
-        background: rgba(160, 148, 130, 0.82);
-        color: var(--nuage);
+        background: rgba(148, 138, 122, 0.75);
+        color: #fefaf0;
         text-decoration: none;
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.12em;
-        border: none;
-        white-space: nowrap;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        text-align: center;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        -webkit-tap-highlight-color: transparent;
       }
     </style>
   </head>
   <body>
+    <!-- Instrução inicial -->
     <div id="overlay-instrucao">Aponte para o íman dos Pauliteiros</div>
 
-    <div id="botoes-ar" class="interface-botoes">
-      <a
-        href="https://www.youtube.com/watch?v=GrUTkjbNbdM"
-        target="_blank"
-        class="btn-link"
-        >Ver Vídeo Completo</a
-      >
-      <a href="https://pauliteiros.com/" target="_blank" class="btn-link"
-        >Saber Mais</a
-      >
+    <!-- Painel UI completo (balão + botões) — aparece sobre a câmara -->
+    <div id="painel-ui">
+      <!-- Balão de texto com slides -->
+      <div id="balao">
+        <p id="texto-slide">
+          Os <strong>Pauliteiros de Miranda</strong> são um grupo de dança
+          original das Terras de Miranda do Douro com antecedência na denominada
+          <em>"dança de espadas"</em>.
+        </p>
+        <div id="balao-rodape">
+          <span id="contador">1 / 5</span>
+          <button id="btn-seguinte">Seguinte &rsaquo;</button>
+        </div>
+      </div>
+
+      <!-- Botões de URL -->
+      <div id="botoes-url">
+        <a
+          href="https://www.youtube.com/watch?v=GrUTkjbNbdM"
+          target="_blank"
+          class="btn-link"
+          >Ver Vídeo Completo</a
+        >
+        <a href="https://pauliteiros.com/" target="_blank" class="btn-link"
+          >Saber Mais</a
+        >
+      </div>
     </div>
 
     <!-- ============================================================
-         CENA A-FRAME — estrutura 100% do original da Diana
-         Apenas os valores de cor, tamanho e posição foram ajustados
+         CENA A-FRAME — vídeo + título AR ancorados ao target
+         O balão e botões são HTML 2D (mais fiável e mais fiel ao mockup)
          ============================================================ -->
     <a-scene
       mindar-image="imageTargetSrc: ./pauliteiros.mind; autoStart: true; uiScanning: no;"
@@ -104,11 +196,8 @@
       renderer="colorManagement: true, physicallyCorrectLights"
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false"
-      raycaster="objects: .clickable"
-      cursor="fuse: false; rayOrigin: mouse;"
     >
       <a-assets>
-        <!-- Nome confirmado pela Diana -->
         <video
           id="vid"
           src="./Pauliteirosclip.mp4"
@@ -119,78 +208,51 @@
           loop
           preload="auto"
         ></video>
-        <!-- Imagem na raiz do projecto (confirmado pela Diana) -->
-        <img id="fundo-desenho" src="./3-1.jpg" crossorigin="anonymous" />
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0">
-        <!-- Fundo escuro geral — igual ao original -->
+        <!-- Fundo escuro por trás de tudo -->
         <a-plane
           position="0 0.1 -0.05"
           width="1.8"
           height="1.8"
-          material="color: #0a0806; opacity: 1; transparent: false;"
+          material="color: #0a0806; opacity: 1;"
         >
         </a-plane>
 
-        <!-- ── VÍDEO — igual ao original, mesmo tamanho ────────── -->
-        <a-video
-          src="#vid"
-          position="0 0.42 0"
-          width="1.4"
-          height="1.0"
-        ></a-video>
+        <!-- Vídeo grande no topo -->
+        <a-video src="#vid" position="0 0.42 0" width="1.4" height="1.0">
+        </a-video>
 
-        <!-- ── TÍTULO ORNAMENTADO ──────────────────────────────────
-             Linha superior com losango central + título + linha inferior
-             Igual ao mockup: setas/chevrons nas pontas, losango ao centro
-             ──────────────────────────────────────────────────────── -->
-
-        <!-- Linha esquerda superior -->
+        <!-- Linha ornamental superior do título -->
         <a-plane
           position="-0.34 -0.09 0.05"
-          width="0.34"
+          width="0.30"
           height="0.004"
           color="#a13a1e"
           opacity="1"
         ></a-plane>
-        <!-- Seta/ponteiro esquerdo -->
-        <a-plane
-          position="-0.67 -0.09 0.05"
-          width="0.04"
-          height="0.04"
-          color="#a13a1e"
-          opacity="1"
-          rotation="0 0 45"
-        ></a-plane>
-        <!-- Círculo central superior -->
         <a-circle
-          position="0 -0.09 0.05"
-          radius="0.025"
+          position="-0.04 -0.09 0.05"
+          radius="0.022"
           color="#a13a1e"
-          opacity="1"
         ></a-circle>
-        <!-- Linha direita superior -->
         <a-plane
           position="0.34 -0.09 0.05"
-          width="0.34"
+          width="0.30"
           height="0.004"
           color="#a13a1e"
           opacity="1"
         ></a-plane>
-        <!-- Seta/ponteiro direito -->
-        <a-plane
-          position="0.67 -0.09 0.05"
-          width="0.04"
-          height="0.04"
+        <a-circle
+          position="0.04 -0.09 0.05"
+          radius="0.022"
           color="#a13a1e"
-          opacity="1"
-          rotation="0 0 45"
-        ></a-plane>
+        ></a-circle>
 
-        <!-- TÍTULO -->
+        <!-- Título -->
         <a-text
           value="LHAÇO L' CASTILHO"
           position="0 -0.155 0.05"
@@ -203,141 +265,88 @@
         >
         </a-text>
 
-        <!-- Linha esquerda inferior -->
+        <!-- Linha ornamental inferior do título -->
         <a-plane
           position="-0.34 -0.225 0.05"
-          width="0.34"
+          width="0.30"
           height="0.004"
           color="#a13a1e"
           opacity="1"
         ></a-plane>
-        <!-- Seta/ponteiro esquerdo inferior -->
-        <a-plane
-          position="-0.67 -0.225 0.05"
-          width="0.04"
-          height="0.04"
-          color="#a13a1e"
-          opacity="1"
-          rotation="0 0 45"
-        ></a-plane>
-        <!-- Círculo central inferior -->
         <a-circle
-          position="0 -0.225 0.05"
-          radius="0.025"
+          position="-0.04 -0.225 0.05"
+          radius="0.022"
           color="#a13a1e"
-          opacity="1"
         ></a-circle>
-        <!-- Linha direita inferior -->
         <a-plane
           position="0.34 -0.225 0.05"
-          width="0.34"
+          width="0.30"
           height="0.004"
           color="#a13a1e"
           opacity="1"
         ></a-plane>
-        <!-- Seta/ponteiro direito inferior -->
-        <a-plane
-          position="0.67 -0.225 0.05"
-          width="0.04"
-          height="0.04"
+        <a-circle
+          position="0.04 -0.225 0.05"
+          radius="0.022"
           color="#a13a1e"
-          opacity="1"
-          rotation="0 0 45"
-        ></a-plane>
-
-        <!-- ── BALÃO DE TEXTO ───────────────────────────────────────
-             Fundo: cinzento/bege acastanhado como no mockup
-             Ilustração 3-1.jpg subtil no canto direito
-             Cantos arredondados simulados com escala
-             ──────────────────────────────────────────────────────── -->
-        <a-entity id="balao-informativo" position="0 -0.52 0.1">
-          <!-- Fundo do balão — cinzento acastanhado do mockup -->
-          <a-plane
-            width="1.35"
-            height="0.72"
-            material="color: #a09482; opacity: 0.88; transparent: true;"
-            geometry="primitive: plane;"
-            scale="1 1 1"
-          >
-          </a-plane>
-
-          <!-- Ilustração 3-1.jpg — canto direito, muito subtil -->
-          <a-plane
-            position="0.32 -0.06 0.01"
-            width="0.55"
-            height="0.52"
-            material="src: #fundo-desenho; transparent: true; opacity: 0.18; color: #ffffff;"
-          >
-          </a-plane>
-
-          <!-- Texto do slide — branco sobre o fundo cinzento -->
-          <a-text
-            id="texto-scroll"
-            value="Os Pauliteiros de Miranda sao um grupo de danca original das Terras de Miranda do Douro com antecedencia na denominada danca de espadas."
-            position="-0.58 0.18 0.02"
-            align="left"
-            color="#ffffff"
-            width="1.1"
-            wrap-count="22"
-            line-height="55"
-            baseline="top"
-          >
-          </a-text>
-
-          <!-- Botão Seguinte — canto inferior direito do balão -->
-          <a-entity
-            id="btn-seguinte"
-            class="clickable"
-            position="0.38 -0.27 0.02"
-          >
-            <a-text
-              value="Seguinte ›"
-              align="center"
-              color="#e8dcc8"
-              width="0.55"
-              font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"
-            >
-            </a-text>
-          </a-entity>
-        </a-entity>
+        ></a-circle>
       </a-entity>
     </a-scene>
 
     <!-- ============================================================
-         JAVASCRIPT — 100% idêntico ao original da Diana
+         JAVASCRIPT
          ============================================================ -->
     <script>
+      // ── Conteúdo dos 5 slides ─────────────────────────────────
+      const slides = [
+        'Os <strong>Pauliteiros de Miranda</strong> são um grupo de dança original das Terras de Miranda do Douro com antecedência na denominada <em>"dança de espadas"</em>.',
+        "Dividem-se em 4 partes: <strong>Entrada</strong>, Anunciar o Lhaço, <strong>Lhaço</strong> e Bicha. Cada parte tem o seu ritmo e coreografia próprios.",
+        "A dança tem elementos <strong>guerreiros, religiosos</strong> e rituais rurais ancestrais que remontam a séculos de história transmontana.",
+        "O bailarino é designado como <strong>dançador</strong> e não pauliteiro. Os paus que usa simbolizam as espadas da dança original.",
+        "Visita <strong>Miranda do Douro</strong> e descobre esta tradição viva nos festivais e festas locais ao longo do ano.",
+      ];
+
+      let slideAtual = 0;
+
       const video = document.getElementById("vid");
-      const botoesAR = document.getElementById("botoes-ar");
-      const textoScroll = document.getElementById("texto-scroll");
+      const overlayInstrucao = document.getElementById("overlay-instrucao");
+      const painelUI = document.getElementById("painel-ui");
+      const textoSlide = document.getElementById("texto-slide");
+      const contador = document.getElementById("contador");
       const btnSeguinte = document.getElementById("btn-seguinte");
 
-      const info = [
-        "Os Pauliteiros de Miranda sao um grupo de danca original das Terras de Miranda do Douro com antecedencia na denominada danca de espadas.",
-        "Sao grupos de 8 homens que dancam ao som da gaita-de-fole, bombo e caixa. O ritmo e unico na Peninsula Iberica.",
-        "O Castelo e um dos lhacos mais acrobaticos. Os dancadores formam uma torre humana, simbolo de forca e uniao.",
-        "Reconhecidos como Património Cultural Imaterial, representam a resistencia da lingua e cultura mirandesa.",
-        "Visita Miranda do Douro e descobre esta tradicao viva nos festivais e festas locais ao longo do ano.",
-      ];
-      let i = 0;
+      // Atualiza o texto e contador do slide
+      function mostrarSlide() {
+        textoSlide.innerHTML = slides[slideAtual];
+        contador.textContent = slideAtual + 1 + " / " + slides.length;
+      }
 
-      btnSeguinte.addEventListener("click", () => {
-        i = (i + 1) % info.length;
-        textoScroll.setAttribute("value", info[i]);
+      // Botão Seguinte
+      btnSeguinte.addEventListener("click", function (e) {
+        e.stopPropagation();
+        slideAtual = (slideAtual + 1) % slides.length;
+        mostrarSlide();
       });
 
+      // Target detetado
       document
         .querySelector("[mindar-image-target]")
-        .addEventListener("targetFound", () => {
-          video.play();
-          botoesAR.style.display = "flex";
+        .addEventListener("targetFound", function () {
+          overlayInstrucao.style.opacity = "0";
+          painelUI.style.display = "flex";
+          video.play().catch(function (e) {
+            console.log("autoplay:", e);
+          });
+          mostrarSlide();
         });
 
+      // Target perdido
       document
         .querySelector("[mindar-image-target]")
-        .addEventListener("targetLost", () => {
+        .addEventListener("targetLost", function () {
+          overlayInstrucao.style.opacity = "1";
+          painelUI.style.display = "none";
           video.pause();
-          botoesAR.style.display = "none";
         });
     </script>
   </body>
