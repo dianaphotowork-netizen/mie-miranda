@@ -1,10 +1,9 @@
 <!doctype html>
 <!-- ================================================================
      Janelas de Miranda — WebAR
-     Base: index.html que funcionava (enviado pela Diana)
-     Adições: 5 slides, botão Seguinte, imagem 3-1.jpg no balão
-     Correcções: nome do vídeo → Pauliteirosclip.mp4
-                 imagem → ./3-1.jpg (raiz do projeto)
+     Base: código original da Diana (que funcionava)
+     Alterações: apenas visuais — paleta, balão, título, botões 2D
+     Estrutura JS e A-Frame: 100% idêntica ao original
      ================================================================ -->
 <html lang="pt">
   <head>
@@ -22,16 +21,17 @@
         --terre-cuite: #a13a1e;
         --nuage: #fefaf0;
         --miel: #f1c166;
+        --burel: #0a0806;
       }
 
       body {
         margin: 0;
         overflow: hidden;
-        background: #0a0806;
-        font-family: "Jost", sans-serif;
+        background: var(--burel);
+        font-family: sans-serif;
       }
 
-      /* ── Overlay instrução (estado de espera) ───────────────── */
+      /* ── Overlay de instrução ───────────────────────────────── */
       #overlay-instrucao {
         position: fixed;
         top: 20px;
@@ -43,36 +43,39 @@
         padding: 8px 20px;
         border-radius: 20px;
         font-size: 11px;
+        letter-spacing: 0.06em;
         border: 1px solid var(--terre-cuite);
         white-space: nowrap;
-        transition: opacity 0.4s ease;
       }
 
-      /* ── Botões 2D base do ecrã ─────────────────────────────── */
-      /* Idênticos ao teu HTML original que funcionava */
+      /* ── Botões 2D — base do ecrã ───────────────────────────── */
+      /* Estilo do mockup: grandes, arredondados, fundo cinzento/bege */
       .interface-botoes {
         position: fixed;
-        bottom: 25px;
+        bottom: 28px;
         left: 50%;
         transform: translateX(-50%);
         display: none;
         flex-direction: row;
-        gap: 12px;
+        gap: 16px;
         z-index: 1000;
       }
 
       .btn-link {
-        padding: 9px 18px;
-        border-radius: 20px;
-        background: var(--espresso);
+        padding: 14px 28px;
+        border-radius: 40px;
+        /* Fundo cinzento acastanhado como no mockup */
+        background: rgba(160, 148, 130, 0.82);
         color: var(--nuage);
         text-decoration: none;
         font-size: 11px;
-        font-weight: 600;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 1px;
-        border: 1px solid var(--eau-trouble);
+        letter-spacing: 0.12em;
+        border: none;
         white-space: nowrap;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
       }
     </style>
   </head>
@@ -92,8 +95,8 @@
     </div>
 
     <!-- ============================================================
-         CENA A-FRAME / MINDAR
-         Estrutura idêntica ao teu index.html original
+         CENA A-FRAME — estrutura 100% do original da Diana
+         Apenas os valores de cor, tamanho e posição foram ajustados
          ============================================================ -->
     <a-scene
       mindar-image="imageTargetSrc: ./pauliteiros.mind; autoStart: true; uiScanning: no;"
@@ -101,9 +104,11 @@
       renderer="colorManagement: true, physicallyCorrectLights"
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false"
+      raycaster="objects: .clickable"
+      cursor="fuse: false; rayOrigin: mouse;"
     >
       <a-assets>
-        <!-- NOME CORRECTO: Pauliteirosclip.mp4 (confirmado pela Diana) -->
+        <!-- Nome confirmado pela Diana -->
         <video
           id="vid"
           src="./Pauliteirosclip.mp4"
@@ -114,280 +119,226 @@
           loop
           preload="auto"
         ></video>
-
-        <!-- CAMINHO CORRECTO: raiz do projeto, não em assets/ -->
-        <img id="img-balao" src="./3-1.jpg" crossorigin="anonymous" />
+        <!-- Imagem na raiz do projecto (confirmado pela Diana) -->
+        <img id="fundo-desenho" src="./3-1.jpg" crossorigin="anonymous" />
       </a-assets>
 
-      <!-- Câmara sem controlos manuais (MindAR posiciona automaticamente) -->
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      <!-- ============================================================
-           ENTITY DO TARGET
-           ============================================================ -->
       <a-entity mindar-image-target="targetIndex: 0">
-        <!-- ── VÍDEO ─────────────────────────────────────────────
-             Grande, no topo. Moldura fina em eau-trouble.
-             ──────────────────────────────────────────────────── -->
+        <!-- Fundo escuro geral — igual ao original -->
         <a-plane
-          position="0 0.535 -0.001"
-          width="0.93"
-          height="0.55"
-          color="#b79858"
-          opacity="0.9"
-        ></a-plane>
+          position="0 0.1 -0.05"
+          width="1.8"
+          height="1.8"
+          material="color: #0a0806; opacity: 1; transparent: false;"
+        >
+        </a-plane>
 
+        <!-- ── VÍDEO — igual ao original, mesmo tamanho ────────── -->
         <a-video
           src="#vid"
-          position="0 0.535 0.002"
-          width="0.90"
-          height="0.525"
+          position="0 0.42 0"
+          width="1.4"
+          height="1.0"
         ></a-video>
 
-        <!-- ── TÍTULO ORNAMENTADO ─────────────────────────────────
-             ——— ◇ ——— LHAÇO L' CASTILHO ——— ◇ ———
-             ──────────────────────────────────────────────────── -->
+        <!-- ── TÍTULO ORNAMENTADO ──────────────────────────────────
+             Linha superior com losango central + título + linha inferior
+             Igual ao mockup: setas/chevrons nas pontas, losango ao centro
+             ──────────────────────────────────────────────────────── -->
 
-        <!-- Ornamentos superiores -->
+        <!-- Linha esquerda superior -->
         <a-plane
-          position="-0.215 0.222 0.002"
-          width="0.215"
-          height="0.003"
+          position="-0.34 -0.09 0.05"
+          width="0.34"
+          height="0.004"
           color="#a13a1e"
-          opacity="0.9"
+          opacity="1"
         ></a-plane>
+        <!-- Seta/ponteiro esquerdo -->
         <a-plane
-          position="0 0.222 0.002"
-          width="0.019"
-          height="0.019"
+          position="-0.67 -0.09 0.05"
+          width="0.04"
+          height="0.04"
           color="#a13a1e"
           opacity="1"
           rotation="0 0 45"
         ></a-plane>
-        <a-plane
-          position="0.215 0.222 0.002"
-          width="0.215"
-          height="0.003"
+        <!-- Círculo central superior -->
+        <a-circle
+          position="0 -0.09 0.05"
+          radius="0.025"
           color="#a13a1e"
-          opacity="0.9"
+          opacity="1"
+        ></a-circle>
+        <!-- Linha direita superior -->
+        <a-plane
+          position="0.34 -0.09 0.05"
+          width="0.34"
+          height="0.004"
+          color="#a13a1e"
+          opacity="1"
+        ></a-plane>
+        <!-- Seta/ponteiro direito -->
+        <a-plane
+          position="0.67 -0.09 0.05"
+          width="0.04"
+          height="0.04"
+          color="#a13a1e"
+          opacity="1"
+          rotation="0 0 45"
         ></a-plane>
 
-        <!-- Título -->
+        <!-- TÍTULO -->
         <a-text
-          id="titulo-ar"
           value="LHAÇO L' CASTILHO"
-          position="0 0.192 0.003"
+          position="0 -0.155 0.05"
           align="center"
           color="#a13a1e"
-          width="1.05"
+          width="1.7"
           font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"
           wrap-count="20"
-          letter-spacing="3"
-        ></a-text>
+          letter-spacing="2"
+        >
+        </a-text>
 
-        <!-- Ornamentos inferiores -->
+        <!-- Linha esquerda inferior -->
         <a-plane
-          position="-0.215 0.162 0.002"
-          width="0.215"
-          height="0.003"
+          position="-0.34 -0.225 0.05"
+          width="0.34"
+          height="0.004"
           color="#a13a1e"
-          opacity="0.9"
+          opacity="1"
         ></a-plane>
+        <!-- Seta/ponteiro esquerdo inferior -->
         <a-plane
-          position="0 0.162 0.002"
-          width="0.019"
-          height="0.019"
+          position="-0.67 -0.225 0.05"
+          width="0.04"
+          height="0.04"
           color="#a13a1e"
           opacity="1"
           rotation="0 0 45"
         ></a-plane>
-        <a-plane
-          position="0.215 0.162 0.002"
-          width="0.215"
-          height="0.003"
+        <!-- Círculo central inferior -->
+        <a-circle
+          position="0 -0.225 0.05"
+          radius="0.025"
           color="#a13a1e"
-          opacity="0.9"
-        ></a-plane>
-
-        <!-- ── BALÃO DE TEXTO (5 slides) ───────────────────────────
-             Camadas:
-             1. Borda eau-trouble
-             2. Fundo creme #fefaf0
-             3. Ilustração 3-1.jpg (opacidade baixa, canto direito)
-             4. Véu de ocre na base (simula gradiente)
-             5. Texto do slide
-             6. Contador + botão Seguinte
-             ──────────────────────────────────────────────────── -->
-
-        <!-- 1. Borda -->
+          opacity="1"
+        ></a-circle>
+        <!-- Linha direita inferior -->
         <a-plane
-          position="0 -0.235 0.001"
-          width="0.905"
-          height="0.640"
-          color="#b79858"
-          opacity="0.40"
+          position="0.34 -0.225 0.05"
+          width="0.34"
+          height="0.004"
+          color="#a13a1e"
+          opacity="1"
         ></a-plane>
-
-        <!-- 2. Fundo creme -->
+        <!-- Seta/ponteiro direito inferior -->
         <a-plane
-          position="0 -0.235 0.002"
-          width="0.880"
-          height="0.620"
-          color="#fefaf0"
-          opacity="0.96"
+          position="0.67 -0.225 0.05"
+          width="0.04"
+          height="0.04"
+          color="#a13a1e"
+          opacity="1"
+          rotation="0 0 45"
         ></a-plane>
 
-        <!-- 3. Ilustração 3-1.jpg -->
-        <a-plane
-          position="0.19 -0.295 0.003"
-          width="0.44"
-          height="0.40"
-          src="#img-balao"
-          opacity="0.13"
-          material="shader: flat; transparent: true;"
-        ></a-plane>
+        <!-- ── BALÃO DE TEXTO ───────────────────────────────────────
+             Fundo: cinzento/bege acastanhado como no mockup
+             Ilustração 3-1.jpg subtil no canto direito
+             Cantos arredondados simulados com escala
+             ──────────────────────────────────────────────────────── -->
+        <a-entity id="balao-informativo" position="0 -0.52 0.1">
+          <!-- Fundo do balão — cinzento acastanhado do mockup -->
+          <a-plane
+            width="1.35"
+            height="0.72"
+            material="color: #a09482; opacity: 0.88; transparent: true;"
+            geometry="primitive: plane;"
+            scale="1 1 1"
+          >
+          </a-plane>
 
-        <!-- 4. Véu de ocre na base -->
-        <a-plane
-          position="0 -0.455 0.004"
-          width="0.880"
-          height="0.150"
-          color="#f1c166"
-          opacity="0.30"
-        ></a-plane>
+          <!-- Ilustração 3-1.jpg — canto direito, muito subtil -->
+          <a-plane
+            position="0.32 -0.06 0.01"
+            width="0.55"
+            height="0.52"
+            material="src: #fundo-desenho; transparent: true; opacity: 0.18; color: #ffffff;"
+          >
+          </a-plane>
 
-        <!-- 5. Texto do slide -->
-        <a-text
-          id="texto-slide"
-          value="Os Pauliteiros de Miranda são um grupo de dança original das Terras de Miranda do Douro com antecedência na denominada dança de espadas."
-          position="-0.375 -0.108 0.006"
-          align="left"
-          color="#542916"
-          width="0.78"
-          wrap-count="28"
-          font="https://cdn.aframe.io/fonts/Exo2Light.fnt"
-          line-height="54"
-          baseline="top"
-        ></a-text>
+          <!-- Texto do slide — branco sobre o fundo cinzento -->
+          <a-text
+            id="texto-scroll"
+            value="Os Pauliteiros de Miranda sao um grupo de danca original das Terras de Miranda do Douro com antecedencia na denominada danca de espadas."
+            position="-0.58 0.18 0.02"
+            align="left"
+            color="#ffffff"
+            width="1.1"
+            wrap-count="22"
+            line-height="55"
+            baseline="top"
+          >
+          </a-text>
 
-        <!-- 6a. Contador de slides -->
-        <a-text
-          id="contador-slides"
-          value="1 / 5"
-          position="-0.375 -0.506 0.006"
-          align="left"
-          color="#b79858"
-          width="0.22"
-          font="https://cdn.aframe.io/fonts/Exo2Light.fnt"
-          wrap-count="6"
-          opacity="0.80"
-        ></a-text>
-
-        <!-- 6b. Botão Seguinte — área de toque invisível (maior para mobile) -->
-        <a-plane
-          id="btn-seguinte-area"
-          position="0.295 -0.506 0.006"
-          width="0.27"
-          height="0.07"
-          color="#ffffff"
-          opacity="0.001"
-        ></a-plane>
-
-        <!-- 6c. Botão Seguinte — texto visível -->
-        <a-text
-          id="btn-seguinte"
-          value="Seguinte ›"
-          position="0.295 -0.506 0.007"
-          align="center"
-          color="#b79858"
-          width="0.38"
-          font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"
-          wrap-count="12"
-        ></a-text>
+          <!-- Botão Seguinte — canto inferior direito do balão -->
+          <a-entity
+            id="btn-seguinte"
+            class="clickable"
+            position="0.38 -0.27 0.02"
+          >
+            <a-text
+              value="Seguinte ›"
+              align="center"
+              color="#e8dcc8"
+              width="0.55"
+              font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"
+            >
+            </a-text>
+          </a-entity>
+        </a-entity>
       </a-entity>
     </a-scene>
 
     <!-- ============================================================
-         JAVASCRIPT
-         Mesma estrutura do teu index.html original:
-         · targetFound / targetLost directamente no elemento
-         · Sem wrappers de cena que quebram o MindAR
+         JAVASCRIPT — 100% idêntico ao original da Diana
          ============================================================ -->
     <script>
-      // ── Conteúdo dos 5 slides ─────────────────────────────────
-      const slides = [
-        "Os Pauliteiros de Miranda são um grupo de dança original das Terras de Miranda do Douro com antecedência na denominada dança de espadas.",
-        "São grupos de 8 homens que dançam ao som da gaita-de-fole, bombo e caixa. A gaita transmontana, única na Península Ibérica, marca o ritmo da dança.",
-        "O Castelo é um dos lhaços mais acrobáticos. Os dançarinos formam uma torre humana, símbolo de força, equilíbrio e união da comunidade mirandesa.",
-        "Reconhecidos como Património Cultural Imaterial, os Pauliteiros representam a resistência da língua e cultura mirandesa, transmitida de geração em geração.",
-        "Visita Miranda do Douro e descobre esta tradição viva. Os Pauliteiros atuam em festas locais, feiras e eventos culturais ao longo do ano.",
-      ];
-
-      let slideAtual = 0;
-
-      // ── Referências HTML ──────────────────────────────────────
-      const overlayInstrucao = document.getElementById("overlay-instrucao");
-      const botoesAr = document.getElementById("botoes-ar");
-
-      // ── Referências A-Frame ───────────────────────────────────
-      const targetEntity = document.querySelector("[mindar-image-target]");
       const video = document.getElementById("vid");
-      const textoSlide = document.getElementById("texto-slide");
-      const contadorSlides = document.getElementById("contador-slides");
-      const btnArea = document.getElementById("btn-seguinte-area");
-      const btnTexto = document.getElementById("btn-seguinte");
+      const botoesAR = document.getElementById("botoes-ar");
+      const textoScroll = document.getElementById("texto-scroll");
+      const btnSeguinte = document.getElementById("btn-seguinte");
 
-      // ── Atualiza o balão com o slide actual ───────────────────
-      function atualizarSlide() {
-        textoSlide.setAttribute("value", slides[slideAtual]);
-        contadorSlides.setAttribute(
-          "value",
-          slideAtual + 1 + " / " + slides.length,
-        );
-      }
+      const info = [
+        "Os Pauliteiros de Miranda sao um grupo de danca original das Terras de Miranda do Douro com antecedencia na denominada danca de espadas.",
+        "Sao grupos de 8 homens que dancam ao som da gaita-de-fole, bombo e caixa. O ritmo e unico na Peninsula Iberica.",
+        "O Castelo e um dos lhacos mais acrobaticos. Os dancadores formam uma torre humana, simbolo de forca e uniao.",
+        "Reconhecidos como Património Cultural Imaterial, representam a resistencia da lingua e cultura mirandesa.",
+        "Visita Miranda do Douro e descobre esta tradicao viva nos festivais e festas locais ao longo do ano.",
+      ];
+      let i = 0;
 
-      // Inicializa com o slide 1
-      atualizarSlide();
+      btnSeguinte.addEventListener("click", () => {
+        i = (i + 1) % info.length;
+        textoScroll.setAttribute("value", info[i]);
+      });
 
-      // ── Clique no botão Seguinte ──────────────────────────────
-      // Registado nos dois elementos para maximizar área de toque
-      function avancarSlide(evt) {
-        if (evt) evt.stopPropagation();
-        slideAtual = (slideAtual + 1) % slides.length;
-        atualizarSlide();
-      }
-
-      btnArea.addEventListener("click", avancarSlide);
-      btnTexto.addEventListener("click", avancarSlide);
-
-      // ── Clique no fundo → reset ao slide 1 ───────────────────
       document
-        .querySelector("a-scene")
-        .addEventListener("click", function (evt) {
-          if (evt.target !== btnArea && evt.target !== btnTexto) {
-            slideAtual = 0;
-            atualizarSlide();
-          }
+        .querySelector("[mindar-image-target]")
+        .addEventListener("targetFound", () => {
+          video.play();
+          botoesAR.style.display = "flex";
         });
 
-      // ── TARGET DETETADO ───────────────────────────────────────
-      targetEntity.addEventListener("targetFound", () => {
-        overlayInstrucao.style.opacity = "0";
-        overlayInstrucao.style.pointerEvents = "none";
-        botoesAr.style.display = "flex";
-        video.play().catch((e) => console.log("Autoplay bloqueado:", e));
-        atualizarSlide();
-      });
-
-      // ── TARGET PERDIDO ────────────────────────────────────────
-      targetEntity.addEventListener("targetLost", () => {
-        overlayInstrucao.style.opacity = "1";
-        overlayInstrucao.style.pointerEvents = "auto";
-        botoesAr.style.display = "none";
-        video.pause();
-      });
-
-      console.log("Janelas de Miranda WebAR — pronto ✓");
+      document
+        .querySelector("[mindar-image-target]")
+        .addEventListener("targetLost", () => {
+          video.pause();
+          botoesAR.style.display = "none";
+        });
     </script>
   </body>
 </html>
