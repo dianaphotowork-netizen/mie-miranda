@@ -10,10 +10,15 @@
 
     <style>
       :root {
-        --burel-escuro: #1a1410;
-        --castanho-claro: #a1887f; /* O castanho clarinho que pediste */
-        --terracota: #c4622d;
-        --la-crua: #e8dcc8;
+        /* PALETA DE DESIGNER "JANELAS DE MIRANDA" */
+        --espresso: #542916; /* Castanho Profundo (Fundo Botões) */
+        --eau-trouble: #b79858; /* Bege Mostarda (Botão Seguinte) */
+        --terre-cuite: #a13a1e; /* Terracota Avermelhado (Título) */
+        --bleu-porcelaine: #88b8ce; /* Azul Cerâmica (Acentos no Futuro) */
+        --nuage-de-lait: #fefaf0; /* Creme Amanteigado (Texto Botões) */
+        --miel-dore: #f1c166; /* Ocre Dourado (Destaques no Futuro) */
+
+        --burel-escuro: #1a1410; /* Fundo da cena */
       }
 
       body {
@@ -23,33 +28,35 @@
         font-family: "Jost", sans-serif;
       }
 
-      /* Botões 2D na parte inferior do ecrã */
+      /* Interface 2D na parte inferior do ecrã */
       .interface-botoes {
         position: fixed;
         bottom: 30px;
         left: 50%;
         transform: translateX(-50%);
         display: none; /* Só aparece quando deteta o íman */
-        flex-direction: column;
-        gap: 12px;
+        flex-direction: row; /* Lado a Lado (Horizontal) */
+        justify-content: center;
+        gap: 10px; /* Mais próximos */
         z-index: 1000;
-        width: 80%;
-        max-width: 300px;
+        width: 90%;
+        max-width: 400px;
       }
 
       .btn-link {
-        padding: 14px;
-        border-radius: 12px;
-        background: var(--castanho-claro);
-        color: #ffffff;
+        padding: 10px 18px; /* Mais pequenos */
+        border-radius: 20px; /* Mais redondos */
+        background: var(--espresso); /* Castanho Profundo da paleta */
+        color: var(--nuage-de-lait); /* Creme Amanteigado da paleta */
         text-decoration: none;
-        font-size: 13px;
-        font-weight: 600;
+        font-size: 11px; /* Mais pequeno */
+        font-weight: 500;
         text-align: center;
         text-transform: uppercase;
         letter-spacing: 1px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         border: none;
+        white-space: nowrap; /* Não quebrar linha */
       }
 
       #overlay-instrucao {
@@ -59,11 +66,11 @@
         transform: translateX(-50%);
         z-index: 999;
         background: rgba(26, 20, 16, 0.8);
-        color: var(--la-crua);
+        color: var(--nuage-de-lait);
         padding: 8px 20px;
         border-radius: 20px;
         font-size: 11px;
-        border: 1px solid var(--terracota);
+        border: 1px solid var(--eau-trouble);
       }
     </style>
   </head>
@@ -75,7 +82,7 @@
         href="https://www.youtube.com/watch?v=GrUTkjbNbdM"
         target="_blank"
         class="btn-link"
-        >Ver Vídeo Completo</a
+        >Ver Vídeo</a
       >
       <a href="https://pauliteiros.com/" target="_blank" class="btn-link"
         >Saber Mais</a
@@ -102,6 +109,7 @@
           loop
           preload="auto"
         ></video>
+        <img id="fundo-desenho" src="./assets/3-1.jpg" />
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -111,7 +119,7 @@
           position="0 0.15 -0.02"
           width="1.1"
           height="0.9"
-          material="color: #1A1410; opacity: 0.9; transparent: false;"
+          material="color: #1A1410; opacity: 1; transparent: false;"
         >
         </a-plane>
 
@@ -126,37 +134,48 @@
           value="LHACCO L' CASTILHO"
           position="0 -0.32 0.02"
           align="center"
-          color="#2C2218"
+          color="#a13a1e"
           width="1.2"
           font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"
         >
         </a-text>
 
         <a-entity position="0.85 0.15 0.05" rotation="0 -10 0">
-          <a-entity
-            geometry="primitive: plane; width: 0.7; height: 0.6"
-            material="color: #FFFFFF; opacity: 0.4; transparent: true; roughness: 0;"
+          <a-plane
+            width="0.7"
+            height="0.6"
+            material="shader: flat; src: #fundo-desenho; transparent: true; opacity: 0.9;"
+            border="width: 0.01; color: #a13a1e"
           >
-          </a-entity>
+          </a-plane>
 
           <a-text
             id="texto-scroll"
-            value="Lhacco e o nome para a melodia e coreografia."
-            position="0 0.05 0.01"
+            value="Os Pauliteiros dancam ao som da gaita-de-fole."
+            position="0 0.08 0.01"
             align="center"
-            color="#1A1410"
+            color="#542916"
             width="0.6"
             wrap-count="15"
           >
           </a-text>
 
-          <a-entity id="btn-seguinte" class="clickable" position="0 -0.2 0.02">
-            <a-plane width="0.3" height="0.1" color="#c4622d"></a-plane>
+          <a-entity
+            id="btn-seguinte"
+            class="clickable"
+            position="0.2 -0.22 0.02"
+          >
+            <a-plane
+              width="0.25"
+              height="0.08"
+              color="#b79858"
+              border="width: 0.005; color: #542916"
+            ></a-plane>
             <a-text
-              value="SEGUINTE"
+              value="Seguinte >"
               align="center"
-              color="#FFF"
-              width="0.5"
+              color="#542916"
+              width="0.45"
             ></a-text>
           </a-entity>
         </a-entity>
@@ -170,14 +189,13 @@
       const btnSeguinte = document.getElementById("btn-seguinte");
 
       const info = [
-        "Lhacco e o nome para a melodia e coreografia.",
-        "O bailarino chama-se dancador e nao pauliteiro.",
-        "A danca divide-se em: Entrada, Anunciar, Lhacco e Bicha.",
-        "Os Pauliteiros sao uma tradicao viva de Miranda do Douro.",
+        "Os Pauliteiros dancam ao som da gaita-de-fole.",
+        "A danca de espadas e anterior a sua categoria.",
+        "Tem rituais guerreiros e religiosos na sua tradicao.",
+        "Sao a principal atraccao do nordeste transmontano.",
       ];
       let i = 0;
 
-      // Lógica do botão Seguinte
       btnSeguinte.addEventListener("click", () => {
         i = (i + 1) % info.length;
         textoScroll.setAttribute("value", info[i]);
