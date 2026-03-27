@@ -1,75 +1,528 @@
 <!doctype html>
+<!-- ================================================================
+     Janelas de Miranda — WebAR v4.0 (Final)
+     Design: Diana · Implementação: Claude
+     Estrutura: Vídeo → Título ornamentado → Balão com 5 slides
+     ================================================================ -->
 <html lang="pt">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Janelas de Miranda — WebAR</title>
 
+    <!-- Google Fonts: Cormorant Garamond (display) + Jost (corpo) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=Jost:wght@300;400;600&display=swap" rel="stylesheet" />
+
+    <!-- A-Frame: motor 3D/WebXR -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <!-- MindAR: rastreamento de imagem -->
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
     <style>
+      /* ============================================================
+         PALETA "JANELAS DE MIRANDA"
+         ============================================================ */
       :root {
-        /* PALETA DE DESIGNER "JANELAS DE MIRANDA" */
-        --espresso: #542916;      /* Castanho Profundo (Texto) */
-        --eau-trouble: #b79858;  /* Bege Mostarda (Acentos) */
-        --terre-cuite: #a13a1e;  /* Terracota Avermelhado (Título) */
-        --nuage-de-lait: #fefaf0;   /* Creme Amanteigado (Início Degradé) */
-        --miel-dore: #f1c166;       /* Ocre Dourado (Fim Degradé) */
-        
-        --burel-escuro: #0a0806;  /* Fundo da cena (Sólido) */
+        --espresso:      #542916;   /* Castanho profundo — texto principal */
+        --eau-trouble:   #b79858;   /* Bege mostarda — acentos e bordas */
+        --terre-cuite:   #a13a1e;   /* Terracota — título AR */
+        --nuage:         #fefaf0;   /* Creme amanteigado — início degradé */
+        --miel:          #f1c166;   /* Ocre dourado — fim degradé */
+        --burel-escuro:  #0a0806;   /* Fundo da cena */
       }
 
-      body { margin: 0; overflow: hidden; background: var(--burel-escuro); font-family: 'Jost', sans-serif; }
+      /* ── Reset ─────────────────────────────────────────────────── */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-      /* Interface 2D na parte inferior do ecrã */
-      .interface-botoes {
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: var(--burel-escuro);
+        font-family: 'Jost', sans-serif;
+      }
+
+      /* ============================================================
+         OVERLAY DE INSTRUÇÃO — topo, estado de espera
+         ============================================================ */
+      #overlay-instrucao {
         position: fixed;
-        bottom: 25px;
+        top: 18px;
         left: 50%;
         transform: translateX(-50%);
-        display: none; /* Só aparece quando deteta o íman */
+        z-index: 999;
+        background: rgba(10, 8, 6, 0.88);
+        color: var(--nuage);
+        padding: 8px 22px;
+        border-radius: 22px;
+        font-family: 'Jost', sans-serif;
+        font-size: 11px;
+        font-weight: 400;
+        letter-spacing: 0.08em;
+        border: 1px solid var(--terre-cuite);
+        white-space: nowrap;
+        /* Oculto por defeito, aparece na instrução inicial */
+        transition: opacity 0.4s ease;
+      }
+
+      /* ============================================================
+         BOTÕES 2D — parte inferior do ecrã
+         Aparecem apenas quando o target está ativo
+         ============================================================ */
+      #botoes-ar {
+        position: fixed;
+        bottom: 22px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: none; /* JS ativa para flex quando target é detetado */
         flex-direction: row;
-        gap: 12px;
+        gap: 10px;
         z-index: 1000;
       }
 
       .btn-link {
-        padding: 9px 18px;
-        border-radius: 20px;
+        padding: 9px 20px;
+        border-radius: 22px;
         background: var(--espresso);
-        color: var(--nuage-de-lait);
+        color: var(--nuage);
         text-decoration: none;
-        font-size: 11px;
+        font-family: 'Jost', sans-serif;
+        font-size: 10px;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.12em;
         border: 1px solid var(--eau-trouble);
         white-space: nowrap;
+        /* Transição suave ao hover */
+        transition: background 0.2s ease;
       }
 
-      #overlay-instrucao {
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 999;
-        background: rgba(10, 8, 6, 0.9);
-        color: var(--nuage-de-lait);
-        padding: 8px 20px;
-        border-radius: 20px;
-        font-size: 11px;
-        border: 1px solid var(--terre-cuite);
+      .btn-link:hover {
+        background: #6e3520;
       }
+
     </style>
   </head>
   <body>
-    
+
+    <!-- Instrução inicial (oculta quando target é detetado) -->
     <div id="overlay-instrucao">Aponte para o íman dos Pauliteiros</div>
 
-    <div id="botoes-ar" class="interface-botoes">
-      <a href="https://www.youtube.com/watch?v=GrUTkjbNbdM" target="_blank" class="btn-link">Ver Vídeo</a>
+    <!-- Botões 2D na base do ecrã (YouTube + site externo) -->
+    <div id="botoes-ar">
+      <a href="https://www.youtube.com/watch?v=GrUTkjbNbdM" target="_blank" class="btn-link">Ver Vídeo Completo</a>
       <a href="https://pauliteiros.com/" target="_blank" class="btn-link">Saber Mais</a>
     </div>
 
-    <a
+
+    <!-- ============================================================
+         CENA A-FRAME / MINDAR
+         ============================================================ -->
+    <a-scene
+      mindar-image="imageTargetSrc: ./pauliteiros.mind; autoStart: true; uiScanning: no;"
+      color-space="sRGB"
+      renderer="colorManagement: true, physicallyCorrectLights"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+    >
+
+      <!-- Pré-carregamento de recursos -->
+      <a-assets>
+        <!--
+          Vídeo:
+          · playsinline + webkit-playsinline: obrigatório iOS (sem fullscreen)
+          · muted: necessário para autoplay nos browsers modernos
+          · crossorigin: permite CORS
+          · loop + preload: reinício automático e carregamento antecipado
+        -->
+        <video
+          id="vid"
+          src="./pauliteiros.mp4"
+          playsinline
+          webkit-playsinline
+          muted
+          crossorigin="anonymous"
+          loop
+          preload="auto"
+        ></video>
+
+        <!--
+          Imagem de fundo do balão (ilustração dos Pauliteiros)
+          Usada como textura no plano de fundo do balão AR.
+          A opacidade é controlada no próprio a-plane abaixo.
+        -->
+        <img id="img-balao" src="./assets/3-1.jpg" crossorigin="anonymous" />
+      </a-assets>
+
+      <!-- Câmara virtual (posicionada pelo MindAR) -->
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+
+      <!-- ============================================================
+           ENTITY DO TARGET (targetIndex: 0)
+           Tudo aqui dentro aparece ancorado ao íman quando detetado.
+
+           SISTEMA DE COORDENADAS (unidades A-Frame, relativas ao target):
+           · X: esquerda(−) / direita(+)
+           · Y: cima(+) / baixo(−)
+           · Z: atrás(−) / frente(+)
+
+           COMPOSIÇÃO VERTICAL (de cima para baixo):
+           Y=+0.52  → Vídeo (centro)
+           Y=+0.00  → Título + ornamentos
+           Y=−0.52  → Balão de texto com slides
+
+           O target ocupa ~1.0 unidade de altura.
+           Expandimos a área útil até ~1.6u para uma composição rica.
+           ============================================================ -->
+      <a-entity mindar-image-target="targetIndex: 0">
+
+
+        <!-- =========================================================
+             ZONA 1: VÍDEO
+             Grande, no topo da composição.
+             Proporção 16:9 redimensionada para formato de íman.
+             ========================================================= -->
+
+        <!-- Moldura do vídeo — borda fina em eau-trouble -->
+        <a-plane
+          position="0 0.53 -0.001"
+          width="0.92"
+          height="0.545"
+          color="#b79858"
+          opacity="0.9"
+        ></a-plane>
+
+        <!-- Vídeo principal -->
+        <a-video
+          src="#vid"
+          position="0 0.53 0.001"
+          width="0.89"
+          height="0.52"
+        ></a-video>
+
+
+        <!-- =========================================================
+             ZONA 2: TÍTULO ORNAMENTADO
+             "LHAÇO L' CASTILHO" emoldurado por ornamentos gráficos.
+             Estilo artesanal: linhas + losangos como no design.
+
+             Estrutura visual:
+             ——— ◇ ——————————————— ◇ ———
+                  LHAÇO L' CASTILHO
+             ——— ◇ ——————————————— ◇ ———
+             ========================================================= -->
+
+        <!-- Fundo do bloco de título (beige claro muito subtil) -->
+        <a-plane
+          position="0 0.18 0.001"
+          width="0.92"
+          height="0.18"
+          color="#fefaf0"
+          opacity="0.08"
+        ></a-plane>
+
+        <!-- Linha ornamental SUPERIOR — lado esquerdo -->
+        <a-plane
+          position="-0.22 0.215 0.002"
+          width="0.22"
+          height="0.0035"
+          color="#a13a1e"
+          opacity="0.85"
+        ></a-plane>
+
+        <!-- Losango ornamental SUPERIOR — centro -->
+        <a-plane
+          position="0 0.215 0.002"
+          width="0.022"
+          height="0.022"
+          color="#a13a1e"
+          opacity="0.9"
+          rotation="0 0 45"
+        ></a-plane>
+
+        <!-- Linha ornamental SUPERIOR — lado direito -->
+        <a-plane
+          position="0.22 0.215 0.002"
+          width="0.22"
+          height="0.0035"
+          color="#a13a1e"
+          opacity="0.85"
+        ></a-plane>
+
+        <!-- TÍTULO: "LHAÇO L' CASTILHO" -->
+        <a-text
+          id="titulo-ar"
+          value="LHAÇO L' CASTILHO"
+          position="0 0.185 0.002"
+          align="center"
+          color="#a13a1e"
+          width="1.1"
+          font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"
+          wrap-count="20"
+          letter-spacing="3"
+        ></a-text>
+
+        <!-- Linha ornamental INFERIOR — lado esquerdo -->
+        <a-plane
+          position="-0.22 0.155 0.002"
+          width="0.22"
+          height="0.0035"
+          color="#a13a1e"
+          opacity="0.85"
+        ></a-plane>
+
+        <!-- Losango ornamental INFERIOR — centro -->
+        <a-plane
+          position="0 0.155 0.002"
+          width="0.022"
+          height="0.022"
+          color="#a13a1e"
+          opacity="0.9"
+          rotation="0 0 45"
+        ></a-plane>
+
+        <!-- Linha ornamental INFERIOR — lado direito -->
+        <a-plane
+          position="0.22 0.155 0.002"
+          width="0.22"
+          height="0.0035"
+          color="#a13a1e"
+          opacity="0.85"
+        ></a-plane>
+
+
+        <!-- =========================================================
+             ZONA 3: BALÃO DE TEXTO COM 5 SLIDES
+             Fundo: degradé creme→ocre com imagem 3-1.jpg sobreposta.
+             Texto em espresso. Botão "Seguinte ›" no canto inferior direito.
+             ========================================================= -->
+
+        <!-- Camada 1: Degradé creme → ocre (simulado com dois planos sobrepostos) -->
+        <!-- Plano base — creme (#fefaf0) -->
+        <a-plane
+          position="0 -0.22 0.001"
+          width="0.88"
+          height="0.62"
+          color="#fefaf0"
+          opacity="0.97"
+          material="shader: flat;"
+        ></a-plane>
+
+        <!--
+          Camada 2: Imagem 3-1.jpg (ilustração Pauliteiros)
+          Usada como textura com baixa opacidade, cria o efeito
+          de fundo artesanal do balão como no design.
+          Alinhada ao canto direito do balão.
+        -->
+        <a-plane
+          position="0.18 -0.28 0.002"
+          width="0.46"
+          height="0.42"
+          src="#img-balao"
+          opacity="0.12"
+          material="shader: flat; transparent: true;"
+        ></a-plane>
+
+        <!-- Camada 3: Véu suave de ocre no canto inferior (simula o gradiente) -->
+        <a-plane
+          position="0 -0.44 0.003"
+          width="0.88"
+          height="0.14"
+          color="#f1c166"
+          opacity="0.28"
+          material="shader: flat;"
+        ></a-plane>
+
+        <!--
+          TEXTO DO SLIDE
+          Controlado por JavaScript: o id="texto-slide" é atualizado
+          pelo array de slides quando o utilizador clica "Seguinte".
+          Posição Y ajustada para respirar bem dentro do balão.
+        -->
+        <a-text
+          id="texto-slide"
+          value="Os Pauliteiros de Miranda são um grupo de dança original das Terras de Miranda do Douro com antecedência na denominada "dança de espadas"."
+          position="-0.37 -0.10 0.005"
+          align="left"
+          color="#542916"
+          width="0.80"
+          wrap-count="30"
+          font="https://cdn.aframe.io/fonts/Exo2Light.fnt"
+          line-height="52"
+          baseline="top"
+        ></a-text>
+
+        <!-- Botão "Seguinte ›" — canto inferior direito do balão -->
+        <!-- Fundo do botão -->
+        <a-plane
+          id="btn-seguinte-bg"
+          position="0.30 -0.50 0.005"
+          width="0.22"
+          height="0.052"
+          color="#b79858"
+          opacity="0.0"
+          class="clickable"
+          material="shader: flat;"
+        ></a-plane>
+
+        <!-- Texto do botão Seguinte -->
+        <a-text
+          id="btn-seguinte"
+          value="Seguinte ›"
+          position="0.30 -0.50 0.006"
+          align="center"
+          color="#b79858"
+          width="0.36"
+          font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"
+          wrap-count="12"
+          class="clickable"
+        ></a-text>
+
+        <!-- Contador de slides (ex: "1 / 5") — canto inferior esquerdo do balão -->
+        <a-text
+          id="contador-slides"
+          value="1 / 5"
+          position="-0.37 -0.50 0.006"
+          align="left"
+          color="#b79858"
+          width="0.20"
+          font="https://cdn.aframe.io/fonts/Exo2Light.fnt"
+          wrap-count="6"
+          opacity="0.75"
+        ></a-text>
+
+        <!-- Borda do balão — eau-trouble muito subtil -->
+        <a-plane
+          position="0 -0.22 0.000"
+          width="0.895"
+          height="0.635"
+          color="#b79858"
+          opacity="0.35"
+          material="shader: flat;"
+        ></a-plane>
+
+      </a-entity>
+    </a-scene>
+
+
+    <!-- ============================================================
+         JAVASCRIPT — Lógica AR, slides e controlo de áudio
+         ============================================================ -->
+    <script>
+      // ─── ARRAY DE SLIDES (5 páginas de conteúdo cultural) ────────
+      // Cada entrada tem o texto que aparece no balão AR.
+      // Linguagem acessível ao turista, baseada na história dos Pauliteiros.
+      const slides = [
+        // Slide 1 — Origem e identidade
+        "Os Pauliteiros de Miranda são um grupo de dança original das Terras de Miranda do Douro com antecedência na denominada "dança de espadas".",
+
+        // Slide 2 — Instrumentos e formação
+        "São grupos de 8 homens que dançam ao som da gaita-de-fole, bombo e caixa. A gaita transmontana, única na Península Ibérica, marca o ritmo da dança.",
+
+        // Slide 3 — O lhaço "Castelo"
+        "O "Castelo" é um dos lhaços (danças) mais acrobáticos. Os dançarinos formam uma torre humana, símbolo de força, equilíbrio e união da comunidade.",
+
+        // Slide 4 — Património vivo
+        "Reconhecidos como Património Cultural Imaterial, os Pauliteiros representam a resistência da língua e cultura mirandesa, transmitida de geração em geração.",
+
+        // Slide 5 — Convite ao visitante
+        "Visita Miranda do Douro e descobre esta tradição viva. Os Pauliteiros atuam em festas locais, feiras e eventos culturais ao longo do ano."
+      ];
+
+      // Índice do slide atual
+      let slideAtual = 0;
+
+      // ─── Referências HTML (interface 2D) ─────────────────────────
+      const overlayInstrucao = document.getElementById('overlay-instrucao');
+      const botoesAr         = document.getElementById('botoes-ar');
+
+      // ─── Referências A-Frame (entidades AR) ──────────────────────
+      // Aguardamos que a cena esteja pronta antes de aceder às entidades.
+      const cena = document.querySelector('a-scene');
+
+      cena.addEventListener('loaded', () => {
+        const targetEntity    = document.querySelector('[mindar-image-target]');
+        const video           = document.getElementById('vid');
+        const textoSlide      = document.getElementById('texto-slide');
+        const btnSeguinte     = document.getElementById('btn-seguinte');
+        const btnSeguinteBg   = document.getElementById('btn-seguinte-bg');
+        const contadorSlides  = document.getElementById('contador-slides');
+
+        // ── Função: atualiza o texto do balão AR ───────────────────
+        function atualizarSlide() {
+          textoSlide.setAttribute('value', slides[slideAtual]);
+          contadorSlides.setAttribute('value', (slideAtual + 1) + ' / ' + slides.length);
+        }
+
+        // ── Função: avança para o próximo slide ────────────────────
+        function avancarSlide() {
+          slideAtual = (slideAtual + 1) % slides.length;
+          atualizarSlide();
+        }
+
+        // ── Função: reset ao slide 1 ───────────────────────────────
+        function resetarSlides() {
+          slideAtual = 0;
+          atualizarSlide();
+        }
+
+        // ── Inicializa com o primeiro slide ───────────────────────
+        atualizarSlide();
+
+        // ── Clique no botão "Seguinte" (entidade A-Frame) ─────────
+        // Funciona tanto no texto como no plano invisível de fundo.
+        [btnSeguinte, btnSeguinteBg].forEach(entidade => {
+          entidade.addEventListener('click', (e) => {
+            e.stopPropagation(); // Não propaga para o reset de fundo
+            avancarSlide();
+          });
+        });
+
+        // ── Clique no fundo da cena → reset ao slide 1 ────────────
+        // Clicar fora do balão (na câmara/cena) volta ao slide inicial.
+        document.querySelector('a-scene').addEventListener('click', () => {
+          resetarSlides();
+        });
+
+        // ── TARGET DETETADO ───────────────────────────────────────
+        // Íman entrou no campo de visão da câmara.
+        targetEntity.addEventListener('targetFound', () => {
+          // Oculta a instrução inicial
+          overlayInstrucao.style.opacity = '0';
+          overlayInstrucao.style.pointerEvents = 'none';
+
+          // Mostra os botões 2D na base do ecrã
+          botoesAr.style.display = 'flex';
+
+          // Inicia o vídeo (sempre em mudo para respeitar política de autoplay)
+          video.play().catch(erro => {
+            console.log('Janelas de Miranda: autoplay bloqueado.', erro);
+          });
+
+          // Garante que o texto está no slide atual (pode ter sido resetado)
+          atualizarSlide();
+        });
+
+        // ── TARGET PERDIDO ────────────────────────────────────────
+        // Íman saiu do campo de visão.
+        targetEntity.addEventListener('targetLost', () => {
+          // Mostra novamente a instrução
+          overlayInstrucao.style.opacity = '1';
+          overlayInstrucao.style.pointerEvents = 'auto';
+
+          // Oculta os botões 2D
+          botoesAr.style.display = 'none';
+
+          // Pausa o vídeo para poupar bateria
+          video.pause();
+        });
+
+      }); // fim cena.addEventListener('loaded')
+
+      // ─── LOG ─────────────────────────────────────────────────────
+      console.log('Janelas de Miranda WebAR v4.0 — Produção final 🎶');
+    </script>
+  </body>
+</html>
