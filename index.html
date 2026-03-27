@@ -11,52 +11,41 @@
     <style>
       :root {
         /* PALETA DE DESIGNER "JANELAS DE MIRANDA" */
-        --espresso: #542916; /* Castanho Profundo (Fundo Botões) */
-        --eau-trouble: #b79858; /* Bege Mostarda (Botão Seguinte) */
-        --terre-cuite: #a13a1e; /* Terracota Avermelhado (Título) */
-        --bleu-porcelaine: #88b8ce; /* Azul Cerâmica (Acentos no Futuro) */
-        --nuage-de-lait: #fefaf0; /* Creme Amanteigado (Texto Botões) */
-        --miel-dore: #f1c166; /* Ocre Dourado (Destaques no Futuro) */
-
-        --burel-escuro: #1a1410; /* Fundo da cena */
+        --espresso: #542916;      /* Castanho Profundo (Texto) */
+        --eau-trouble: #b79858;  /* Bege Mostarda (Acentos) */
+        --terre-cuite: #a13a1e;  /* Terracota Avermelhado (Título) */
+        --nuage-de-lait: #fefaf0;   /* Creme Amanteigado (Início Degradé) */
+        --miel-dore: #f1c166;       /* Ocre Dourado (Fim Degradé) */
+        
+        --burel-escuro: #0a0806;  /* Fundo da cena (Sólido) */
       }
 
-      body {
-        margin: 0;
-        overflow: hidden;
-        background: var(--burel-escuro);
-        font-family: "Jost", sans-serif;
-      }
+      body { margin: 0; overflow: hidden; background: var(--burel-escuro); font-family: 'Jost', sans-serif; }
 
       /* Interface 2D na parte inferior do ecrã */
       .interface-botoes {
         position: fixed;
-        bottom: 30px;
+        bottom: 25px;
         left: 50%;
         transform: translateX(-50%);
         display: none; /* Só aparece quando deteta o íman */
-        flex-direction: row; /* Lado a Lado (Horizontal) */
-        justify-content: center;
-        gap: 10px; /* Mais próximos */
+        flex-direction: row;
+        gap: 12px;
         z-index: 1000;
-        width: 90%;
-        max-width: 400px;
       }
 
       .btn-link {
-        padding: 10px 18px; /* Mais pequenos */
-        border-radius: 20px; /* Mais redondos */
-        background: var(--espresso); /* Castanho Profundo da paleta */
-        color: var(--nuage-de-lait); /* Creme Amanteigado da paleta */
+        padding: 9px 18px;
+        border-radius: 20px;
+        background: var(--espresso);
+        color: var(--nuage-de-lait);
         text-decoration: none;
-        font-size: 11px; /* Mais pequeno */
-        font-weight: 500;
-        text-align: center;
+        font-size: 11px;
+        font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 1px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        border: none;
-        white-space: nowrap; /* Não quebrar linha */
+        border: 1px solid var(--eau-trouble);
+        white-space: nowrap;
       }
 
       #overlay-instrucao {
@@ -65,155 +54,22 @@
         left: 50%;
         transform: translateX(-50%);
         z-index: 999;
-        background: rgba(26, 20, 16, 0.8);
+        background: rgba(10, 8, 6, 0.9);
         color: var(--nuage-de-lait);
         padding: 8px 20px;
         border-radius: 20px;
         font-size: 11px;
-        border: 1px solid var(--eau-trouble);
+        border: 1px solid var(--terre-cuite);
       }
     </style>
   </head>
   <body>
+    
     <div id="overlay-instrucao">Aponte para o íman dos Pauliteiros</div>
 
     <div id="botoes-ar" class="interface-botoes">
-      <a
-        href="https://www.youtube.com/watch?v=GrUTkjbNbdM"
-        target="_blank"
-        class="btn-link"
-        >Ver Vídeo</a
-      >
-      <a href="https://pauliteiros.com/" target="_blank" class="btn-link"
-        >Saber Mais</a
-      >
+      <a href="https://www.youtube.com/watch?v=GrUTkjbNbdM" target="_blank" class="btn-link">Ver Vídeo</a>
+      <a href="https://pauliteiros.com/" target="_blank" class="btn-link">Saber Mais</a>
     </div>
 
-    <a-scene
-      mindar-image="imageTargetSrc: ./pauliteiros.mind; autoStart: true; uiScanning: no;"
-      color-space="sRGB"
-      renderer="colorManagement: true, physicallyCorrectLights"
-      vr-mode-ui="enabled: false"
-      device-orientation-permission-ui="enabled: false"
-      raycaster="objects: .clickable"
-      cursor="fuse: false; rayOrigin: mouse;"
-    >
-      <a-assets>
-        <video
-          id="vid"
-          src="./Pauliteirosclip.mp4"
-          playsinline
-          webkit-playsinline
-          muted
-          crossorigin="anonymous"
-          loop
-          preload="auto"
-        ></video>
-        <img id="fundo-desenho" src="./assets/3-1.jpg" />
-      </a-assets>
-
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-
-      <a-entity mindar-image-target="targetIndex: 0">
-        <a-plane
-          position="0 0.15 -0.02"
-          width="1.1"
-          height="0.9"
-          material="color: #1A1410; opacity: 1; transparent: false;"
-        >
-        </a-plane>
-
-        <a-video
-          src="#vid"
-          position="0 0.15 0"
-          width="1"
-          height="0.75"
-        ></a-video>
-
-        <a-text
-          value="LHACCO L' CASTILHO"
-          position="0 -0.32 0.02"
-          align="center"
-          color="#a13a1e"
-          width="1.2"
-          font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"
-        >
-        </a-text>
-
-        <a-entity position="0.85 0.15 0.05" rotation="0 -10 0">
-          <a-plane
-            width="0.7"
-            height="0.6"
-            material="shader: flat; src: #fundo-desenho; transparent: true; opacity: 0.9;"
-            border="width: 0.01; color: #a13a1e"
-          >
-          </a-plane>
-
-          <a-text
-            id="texto-scroll"
-            value="Os Pauliteiros dancam ao som da gaita-de-fole."
-            position="0 0.08 0.01"
-            align="center"
-            color="#542916"
-            width="0.6"
-            wrap-count="15"
-          >
-          </a-text>
-
-          <a-entity
-            id="btn-seguinte"
-            class="clickable"
-            position="0.2 -0.22 0.02"
-          >
-            <a-plane
-              width="0.25"
-              height="0.08"
-              color="#b79858"
-              border="width: 0.005; color: #542916"
-            ></a-plane>
-            <a-text
-              value="Seguinte >"
-              align="center"
-              color="#542916"
-              width="0.45"
-            ></a-text>
-          </a-entity>
-        </a-entity>
-      </a-entity>
-    </a-scene>
-
-    <script>
-      const video = document.getElementById("vid");
-      const botoesAR = document.getElementById("botoes-ar");
-      const textoScroll = document.getElementById("texto-scroll");
-      const btnSeguinte = document.getElementById("btn-seguinte");
-
-      const info = [
-        "Os Pauliteiros dancam ao som da gaita-de-fole.",
-        "A danca de espadas e anterior a sua categoria.",
-        "Tem rituais guerreiros e religiosos na sua tradicao.",
-        "Sao a principal atraccao do nordeste transmontano.",
-      ];
-      let i = 0;
-
-      btnSeguinte.addEventListener("click", () => {
-        i = (i + 1) % info.length;
-        textoScroll.setAttribute("value", info[i]);
-      });
-
-      document
-        .querySelector("[mindar-image-target]")
-        .addEventListener("targetFound", () => {
-          video.play();
-          botoesAR.style.display = "flex";
-        });
-
-      document
-        .querySelector("[mindar-image-target]")
-        .addEventListener("targetLost", () => {
-          video.pause();
-          botoesAR.style.display = "none";
-        });
-    </script>
-  </body>
-</html>
+    <a
