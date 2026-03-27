@@ -419,24 +419,25 @@
              Formato vertical para encaixar no íman físico MDF.
              =========================================================== -->
         <a-plane
-          position="0 0 -0.003"
-          width="0.97"
-          height="1.10"
-          color="#1a1410"
-          opacity="0.97"
-        ></a-plane>
+          material="shader: standard; color: #FFFFFF; transparent: true; opacity: 0.1; side: double; roughness: 0; metalness: 0.1;"
+          position="0 0 -0.01"
+          width="1.2"
+          height="1.5"
+        >
+        </a-plane>
 
         <!-- ===========================================================
              VÍDEO PRINCIPAL
              Formato vertical/quadrado para o íman.
              Posicionado acima do centro para dar espaço à infografia.
              =========================================================== -->
-        <a-video
-          src="#vid"
-          position="0 0.13 0.005"
-          width="0.85"
-          height="0.60"
-        ></a-video>
+        <a-plane
+          material="shader: standard; color: #000000; transparent: true; opacity: 0.5; side: double; roughness: 1;"
+          position="0 0 -0.011"
+          width="1.25"
+          height="1.55"
+        >
+        </a-plane>
 
         <!-- ===========================================================
              SEPARADOR DECORATIVO — entre o vídeo e a infografia
